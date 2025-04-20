@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        @font-face {
+            font-family: "Nunito-VariableFont_wght";
+            src: url(../../Fonts/Nunito-VariableFont_wght.ttf) format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            font-family: 'Nunito-VariableFont_wght', sans-serif;
+        }
+
+        .GroupContainer {
+            display: flex;
+            height: 400px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div>
+            <input type="checkbox" id="cbShowIncludeSelection"/>
+            <label for="cbShowIncludeSelection">Show include selection option in value filter</label>
+        </div>
+        <div id="log" class="log">
+            &nbsp;
+        </div>
+        <div id="theGrid" class="GroupContainer"></div>
+    </div>
+    <link href="https://cdn.mescius.com/wijmo/5.latest/styles/wijmo.min.css" rel="stylesheet" />
+    <script src="https://cdn.mescius.com/wijmo/5.latest/controls/wijmo.min.js"></script>
+    <script src="https://cdn.mescius.com/wijmo/5.latest/controls/wijmo.grid.min.js"></script>
+    <script src="https://cdn.mescius.com/wijmo/5.latest/controls/wijmo.grid.filter.min.js"></script>
+    <script src="../Serialize.js"></script>
+    <script src="../../SampleSdd/Sample_Scenarios.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
