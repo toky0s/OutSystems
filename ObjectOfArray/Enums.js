@@ -1,9 +1,23 @@
 // Filter enums
-const FILTER_EQUALS ='Value equals'
-const FILTER_DOES_NOT_EQUALS ='Value does not equal'
-const FILTER_IS_IN_ARRAY ='Value is in array'
-const FILTER_IS_NOT_IN_ARRAY ='Value is not in array'
-const FILTER_IS_LESS_THAN ='Value is less than'
-const FILTER_IS_LESS_THAN_OR_EQUAL ='Value is less than (or equal)'
-const FILTER_IS_GREATER_THAN ='Value is greater than'
-const FILTER_IS_GREATER_THAN_OR_EQUAL ='Value is greater than (or equal)'
+const FilterOnColumn = {
+    ValueEquals: 'Value equals',
+    ValueDoesNotEqual: 'Value does not equal',
+    ValueIsInArray: 'Value is in array',
+    ValueIsNotInArray: 'Value is not in array',
+    ValueIsLessThan: 'Value is less than',
+    ValueIsLessThanOrEqual: 'Value is less than (or equal)',
+    ValueIsGreaterThan: 'Value is greater than',
+    ValueIsGreaterThanOrEqual: 'Value is greater than (or equal)'
+}
+
+// Add/Modify column enums
+const AddModifyColumn = {
+    AddColumnWithStaticValue: "Add column with static value",
+    ReplaceNullWithValue: "Replace 'null' cells with value",
+    CreateColumnBasedOffValueIfDiffColViaMapping: "Create column based off values in a different column via mapping",
+    AddSubtractDivideMultiplyStaticValue: "Add/subtract/divide/multiply by static value",
+    AddSubtractDivideMultiplyAnotherCol: "Add/subtract/divide/multiply by another column",
+    ConcatenateColumnsStrings: "Concatenate columns/strings",
+    AddColumnContainingTheIndexEachRow: "Add column containing the index each row",
+    ConvertColumnType: "Convert column type"
+}
