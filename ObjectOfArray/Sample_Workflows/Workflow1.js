@@ -1,4 +1,4 @@
-const selectedEntity = "PETRONAS"
+const selectedEntity = "petronas"
 // const outputMcaRaw = JSON.parse($parameters.OutputMcaRaw)
 // const outputMca = JSON.parse($parameters.OutputMca)
 // const pnlSummary = JSON.parse($parameters.PnlSummary)
@@ -35,6 +35,9 @@ const aggregatedDemandSum = DaisAggregate(
         { InColumn: "Parcel Size", Method: 'Sum', WhatTodoWithANullVale: 0 },
     ]
 )
+
+console.log("outputMcaRaw", outputMcaRaw)
+console.log("aggregatedDemandSum", aggregatedDemandSum)
 
 const filteredDemandEntitesSdd = DaisFilterOnColumn(aggregatedDemandSum, "Entities", "Value equals", selectedEntity)
 let sddFilteredByDemandType
