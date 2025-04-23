@@ -1,10 +1,13 @@
 function DaisAddModifyColumn(sdd, columnName, method, options = {}) {
     const rowCount = Object.values(sdd.data)[0]?.length || 0;
+
     const getColData = colKey => {
         const index = parseInt(colKey.replace("col-", "")) - 1;
         const colName = Object.keys(sdd.definitions)[index];
         return sdd.data[colName];
     };
+
+    const getColDataByColumnName = colName => sdd.data[colName];
     const getColName = colKey => {
         const index = parseInt(colKey.replace("col-", "")) - 1;
         return Object.keys(sdd.definitions)[index];
@@ -28,13 +31,13 @@ function DaisAddModifyColumn(sdd, columnName, method, options = {}) {
             if (options.method === "Replace 'null' with static value") {
                 sdd.data[columnName] = sdd.data[columnName].map(val => val === null ? options.value : val);
             } else if (options.method === "Replace 'null' with value from another column") {
-                const replacementData = getColData(options.sourceColumn);
+                const replacementData = getColDataByColumnName(options.sourceColumn);
                 sdd.data[columnName] = sdd.data[columnName].map((val, i) => val === null ? replacementData[i] : val);
             }
             break;
 
         case "Create column based off values in a different column via mapping":
-            const baseData = getColData(options.baseColumn);
+            const baseData = getColDataByColumnName(options.baseColumn);
             const newCol = baseData.map(v => {
                 if (options.mapping.hasOwnProperty(v)) return options.mapping[v];
                 if (options.fallback === "Replace with static value") return options.fallbackValue;
@@ -45,7 +48,7 @@ function DaisAddModifyColumn(sdd, columnName, method, options = {}) {
             break;
 
         case "Add/subtract/divide/multiply by static value":
-            const lhsStatic = getColData(options.lhs);
+            const lhsStatic = getColDataByColumnName(options.lhs);
             const opMap = {
                 Add: (a, b) => a + b,
                 Subtract: (a, b) => a - b,
@@ -57,8 +60,8 @@ function DaisAddModifyColumn(sdd, columnName, method, options = {}) {
             break;
 
         case "Add/subtract/divide/multiply by another column":
-            const lhs = getColData(options.lhs);
-            const rhs = getColData(options.rhs);
+            const lhs = getColDataByColumnName(options.lhs);
+            const rhs = getColDataByColumnName(options.rhs);
             const opMap2 = {
                 Add: (a, b) => a + b,
                 Subtract: (a, b) => a - b,
