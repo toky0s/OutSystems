@@ -6,7 +6,7 @@
  * @param {Function} onProgress On Progress function
  * @param {Function} onComplete On Complete callback
  */
-function convertSDDToArrayAsync(sdd, batchSize = 1000, onProgress = () => { }, onComplete) {
+export function sddConvertSddToArrayAsync(sdd, batchSize = 1000, onProgress = () => { }, onComplete) {
     const { definitions, data } = sdd;
     const length = Object.values(data)[0]?.length || 0;
     const result = [];
@@ -34,10 +34,3 @@ function convertSDDToArrayAsync(sdd, batchSize = 1000, onProgress = () => { }, o
 
     processBatch();
 }
-
-// convertSDDToArrayAsync(sdd, 1000,
-//     (done, total) => console.log(`Progress: ${done}/${total}`),
-//     (result) => {
-//         console.log("Done!", result);
-//     }
-// );

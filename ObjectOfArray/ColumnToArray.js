@@ -6,7 +6,7 @@
  * @param {isRemoveDuplicateValues} Whether remove duplicated values
  * @author XinTA - 2025/05/21
  */
-function DaisColumnToArray(sdd, column, isRemoveDuplicateValues) {
+export function sddColumnToArray(sdd, column, isRemoveDuplicateValues) {
     if (column in sdd.data) {
         const col = sdd.data[column]
         return isRemoveDuplicateValues ? [...new Set(col)] : col

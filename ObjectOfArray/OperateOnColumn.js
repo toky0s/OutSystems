@@ -11,7 +11,7 @@
  * @param {string} newName - new column name
  * @returns {object} new SDD with renamed column
  */
-function renameColumn(sdd, origin, newName) {
+export function sddRenameColumn(sdd, origin, newName) {
     const { data, definitions } = sdd;
     if (!data.hasOwnProperty(origin)) {
         throw new Error(`Column '${origin}' not found`);
@@ -38,7 +38,7 @@ function renameColumn(sdd, origin, newName) {
  * @param {string} newName - name for duplicated column
  * @returns {object} new SDD with duplicated column
  */
-function duplicateColumn(sdd, origin, newName) {
+export function sddDuplicateColumn(sdd, origin, newName) {
     const { data, definitions } = sdd;
     if (!data.hasOwnProperty(origin)) {
         throw new Error(`Column '${origin}' not found`);
@@ -61,7 +61,7 @@ function duplicateColumn(sdd, origin, newName) {
  * @param {string} column - column name to delete
  * @returns {object} new SDD without the specified column
  */
-function deleteColumn(sdd, column) {
+export function sddDeleteColumn(sdd, column) {
     const { data, definitions } = sdd;
     if (!data.hasOwnProperty(column)) {
         throw new Error(`Column '${column}' not found`);
@@ -79,7 +79,7 @@ function deleteColumn(sdd, column) {
  * @param {string[]} columns - list of column names to delete
  * @returns {object} new SDD without those columns
  */
-function deleteColumnsInArray(sdd, columns) {
+export function sddDeleteColumnsInArray(sdd, columns) {
     let { data, definitions } = sdd;
     const newData = { ...data };
     const newDefs = { ...definitions };
@@ -100,7 +100,7 @@ function deleteColumnsInArray(sdd, columns) {
  * @param {string[]} keepColumns - list of column names to keep
  * @returns {object} new SDD containing only keepColumns
  */
-function deleteColumnsNotInArray(sdd, keepColumns) {
+export function sddDeleteColumnsNotInArray(sdd, keepColumns) {
     const { data, definitions } = sdd;
     const newData = {};
     const newDefs = {};

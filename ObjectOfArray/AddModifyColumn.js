@@ -1,4 +1,4 @@
-function DaisAddModifyColumn(sdd, columnName, method, options = {}) {
+export function sddAddModifyColumn(sdd, columnName, method, options = {}) {
     const rowCount = Object.values(sdd.data)[0]?.length || 0;
 
     const getColData = colKey => {

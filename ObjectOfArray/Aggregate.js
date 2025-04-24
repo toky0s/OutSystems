@@ -17,7 +17,7 @@
  *   2. An InColumn is not in definitions
  *   3. A Method is incompatible with field kind
  */
-function aggregateSDD(sdd, grouping, aggregations) {
+export function sddAggregate(sdd, grouping, aggregations) {
     const { data, definitions } = sdd;
     const cols = Object.keys(data);
     if (cols.length === 0) return { data: {}, definitions: {} };

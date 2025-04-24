@@ -1,4 +1,4 @@
-function DaisMerge(sdd1, sdd2, method) {
+export function sddMerge(sdd1, sdd2, method) {
     const result = {
         definitions: {},
         data: {}

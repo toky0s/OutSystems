@@ -23,7 +23,7 @@ function castToString(value) {
  * @param {Array<string|number|boolean>} [explicitOrder] - required if method is 'Explicit order'
  * @returns {object} new SDD sorted accordingly
  */
-function sortSDD(sdd, column, method, explicitOrder) {
+export function sddSort(sdd, column, method, explicitOrder) {
   const { data, definitions } = sdd;
   if (!data.hasOwnProperty(column)) throw new Error(`Column '${column}' not found`);
   const rowCount = data[column].length;

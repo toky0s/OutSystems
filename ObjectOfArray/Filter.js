@@ -7,7 +7,7 @@
  * @param {any} value - Value to use for the filter
  * @returns {{ data: Record<string, any[]>, definitions: Record<string, { kind: string, optional: boolean }> }}
  */
-function filterSDD(sdd, columnName, filterType, value) {
+export function sddFilter(sdd, columnName, filterType, value) {
     const { data, definitions } = sdd;
 
     if (!data[columnName]) {
