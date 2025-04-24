@@ -26,7 +26,7 @@ export function sddConvertSddToArrayAsync(sdd, batchSize = 1000, onProgress = ()
         onProgress(result.length, length);
 
         if (index < length) {
-            setTimeout(processBatch, 0); // nhường lại cho UI
+            setTimeout(processBatch, 0);
         } else {
             onComplete(result);
         }

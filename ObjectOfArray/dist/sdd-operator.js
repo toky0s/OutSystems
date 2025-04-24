@@ -20,17 +20,22 @@ var SddOperator = (() => {
   // Index.js
   var Index_exports = {};
   __export(Index_exports, {
-    SddOperator: () => SddOperator
+    sddAddModifyColumn: () => sddAddModifyColumn,
+    sddAggregate: () => sddAggregate,
+    sddColumnToArray: () => sddColumnToArray,
+    sddConvertSddToArrayAsync: () => sddConvertSddToArrayAsync,
+    sddDeleteColumn: () => sddDeleteColumn,
+    sddDeleteColumnsInArray: () => sddDeleteColumnsInArray,
+    sddDeleteColumnsNotInArray: () => sddDeleteColumnsNotInArray,
+    sddDuplicateColumn: () => sddDuplicateColumn,
+    sddFilter: () => sddFilter,
+    sddMerge: () => sddMerge,
+    sddRenameColumn: () => sddRenameColumn
   });
 
   // AddModifyColumn.js
   function sddAddModifyColumn(sdd, columnName, method, options = {}) {
     const rowCount = Object.values(sdd.data)[0]?.length || 0;
-    const getColData = (colKey) => {
-      const index = parseInt(colKey.replace("col-", "")) - 1;
-      const colName = Object.keys(sdd.definitions)[index];
-      return sdd.data[colName];
-    };
     const getColDataByColumnName = (colName) => sdd.data[colName];
     const getColName = (colKey) => {
       const index = parseInt(colKey.replace("col-", "")) - 1;
@@ -495,20 +500,5 @@ var SddOperator = (() => {
     }
     return { data: newData, definitions: newDefs };
   }
-
-  // Index.js
-  var SddOperator = {
-    sddMerge,
-    sddAddModifyColumn,
-    sddAggregate,
-    sddFilter,
-    sddColumnToArray,
-    sddConvertSddToArrayAsync,
-    sddDeleteColumn,
-    sddDeleteColumnsInArray,
-    sddDeleteColumnsNotInArray,
-    sddDuplicateColumn,
-    sddRenameColumn
-  };
   return __toCommonJS(Index_exports);
 })();

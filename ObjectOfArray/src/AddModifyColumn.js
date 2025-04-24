@@ -1,12 +1,6 @@
 export function sddAddModifyColumn(sdd, columnName, method, options = {}) {
     const rowCount = Object.values(sdd.data)[0]?.length || 0;
 
-    const getColData = colKey => {
-        const index = parseInt(colKey.replace("col-", "")) - 1;
-        const colName = Object.keys(sdd.definitions)[index];
-        return sdd.data[colName];
-    };
-
     const getColDataByColumnName = colName => sdd.data[colName];
     const getColName = colKey => {
         const index = parseInt(colKey.replace("col-", "")) - 1;

@@ -7,13 +7,8 @@ const isBceView = false
 const isShortfallView = false
 const bceValue = 0.065
 
-const DaisAggregate = aggregateSDD
-// const DaisAddModifyColumn = DaisAddModifyColumn
-const DaisFilterOnColumn = filterSDD
-// const DaisMerge = DaisMerge
-
 ///////////// COMMON ////////////////////
-const aggregatedDateSum = DaisAggregate(
+const aggregatedDateSum = SddOperator.sddAggregate(
     outputMcaRaw,
     ["date"],
     [
@@ -21,14 +16,14 @@ const aggregatedDateSum = DaisAggregate(
     ]
 )
 
-const sddAddedParcelSizeCol = DaisAddModifyColumn(aggregatedDateSum, "Parcel Size", "Add column with static value", {
+const sddAddedParcelSizeCol = SddOperator.sddAddModifyColumn(aggregatedDateSum, "Parcel Size", "Add column with static value", {
     columnType: "Auto",
     value: 0
 })
 ///////////// COMMON ////////////////////
 
 ///////////// DEMAND ////////////////////
-const aggregatedDemandSum = DaisAggregate(
+const aggregatedDemandSum = SddOperator.sddAggregate(
     outputMcaRaw,
     ["date", "Entities", "Demand Type"],
     [
@@ -39,10 +34,10 @@ const aggregatedDemandSum = DaisAggregate(
 console.log("outputMcaRaw", outputMcaRaw)
 console.log("aggregatedDemandSum", aggregatedDemandSum)
 
-const filteredDemandEntitesSdd = DaisFilterOnColumn(aggregatedDemandSum, "Entities", "Value equals", selectedEntity)
+const filteredDemandEntitesSdd = SddOperator.sddFilter(aggregatedDemandSum, "Entities", "Value equals", selectedEntity)
 let sddFilteredByDemandType
 if (isExcessView) {
-    sddFilteredByDemandType = DaisFilterOnColumn(filteredDemandEntitesSdd, "Demand Type", "Value is in array", [
+    sddFilteredByDemandType = SddOperator.sddFilter(filteredDemandEntitesSdd, "Demand Type", "Value is in array", [
         'spot',
         'spot_mlng',
     ])
@@ -50,11 +45,11 @@ if (isExcessView) {
 else {
     sddFilteredByDemandType = filteredDemandEntitesSdd
 }
-const sddDemandVolumes = DaisMerge(sddFilteredByDemandType, sddAddedParcelSizeCol, "Append (loose)")
+const sddDemandVolumes = SddOperator.sddMerge(sddFilteredByDemandType, sddAddedParcelSizeCol, "Append (loose)")
 ///////////// DEMAND ////////////////////
 
 ///////////// SUPPLY ////////////////////
-const aggregatedSupplySum = DaisAggregate(
+const aggregatedSupplySum = SddOperator.sddAggregate(
     outputMcaRaw,
     ["date", "Entities", "Supplier"],
     [
@@ -62,26 +57,26 @@ const aggregatedSupplySum = DaisAggregate(
     ]
 )
 
-const filteredSupplyEntitesSdd = DaisFilterOnColumn(aggregatedSupplySum, "Entities", "Value equals", selectedEntity)
+const filteredSupplyEntitesSdd = SddOperator.sddFilter(aggregatedSupplySum, "Entities", "Value equals", selectedEntity)
 let sddFilteredBySupplier
 if (isShortfallView) {
 
 }
 else {
-    sddFilteredBySupplier = DaisFilterOnColumn(filteredSupplyEntitesSdd, "Supplier", "Value equals", 'JKM')
+    sddFilteredBySupplier = SddOperator.sddFilter(filteredSupplyEntitesSdd, "Supplier", "Value equals", 'JKM')
 }
-const sddSupplyVolumes = DaisMerge(sddFilteredBySupplier, sddAddedParcelSizeCol, "Append (loose)")
+const sddSupplyVolumes = SddOperator.sddMerge(sddFilteredBySupplier, sddAddedParcelSizeCol, "Append (loose)")
 ///////////// SUPPLY ////////////////////
 
 let leftDemandVolumes, rightSupplyVolumes, tooltips, unit
 if (isBceView) {
-    leftDemandVolumes = DaisAddModifyColumn(sddDemandVolumes, "Parcel Size", "Add/subtract/divide/multiply by static value", {
+    leftDemandVolumes = SddOperator.sddAddModifyColumn(sddDemandVolumes, "Parcel Size", "Add/subtract/divide/multiply by static value", {
         lhs: "Parcel Size",
         operation: "Divide",
         rhsValue: bceValue
     })
 
-    rightSupplyVolumes = DaisAddModifyColumn(sddSupplyVolumes, "Parcel Size", "Add/subtract/divide/multiply by static value", {
+    rightSupplyVolumes = SddOperator.sddAddModifyColumn(sddSupplyVolumes, "Parcel Size", "Add/subtract/divide/multiply by static value", {
         lhs: "Parcel Size",
         operation: "Divide",
         rhsValue: bceValue
@@ -123,8 +118,8 @@ $parameters.SupplyVolumes = rightSupplyVolumes
 $parameters.Tooltips = tooltips
 $parameters.Unit = unit
 
-const outputMcaFiltered = DaisFilterOnColumn(outputMca, "Entities", "Value equals", selectedEntity)
+const outputMcaFiltered = SddOperator.sddFilter(outputMca, "Entities", "Value equals", selectedEntity)
 $parameters.OutputMcaFiltered = JSON.stringify(outputMcaFiltered)
 
-const pnlSummaryFiltered = DaisFilterOnColumn(pnlSummary, "Entities", "Value equals", selectedEntity)
+const pnlSummaryFiltered = SddOperator.sddFilter(pnlSummary, "Entities", "Value equals", selectedEntity)
 $parameters.PnlSummaryFiltered = JSON.stringify(pnlSummaryFiltered)

@@ -1,5 +1,0 @@
-{
-    "scripts": {
-      "build": "esbuild Index.js --bundle --format=iife --global-name=SddOperator --outfile=dist/sdd-operator.js"
-    }
-  }
