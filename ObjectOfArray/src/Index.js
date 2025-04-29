@@ -4,6 +4,9 @@ import { sddAggregate } from './Aggregate'
 import { sddFilter } from './Filter'
 import { sddColumnToArray } from './ColumnToArray'
 import { sddConvertSddToArrayAsync } from './Serialize'
+import { sddPivotToWideTable } from './PivotToWideTable'
+import { csvToSdd } from './CsvToSdd'
+import { sddSetValue } from './SetValue'
 import {
     sddDeleteColumn,
     sddDeleteColumnsInArray,
@@ -23,5 +26,8 @@ export {
     sddDeleteColumnsInArray,
     sddDeleteColumnsNotInArray,
     sddDuplicateColumn,
-    sddRenameColumn
+    sddRenameColumn,
+    sddPivotToWideTable,
+    sddSetValue,
+    csvToSdd
 }

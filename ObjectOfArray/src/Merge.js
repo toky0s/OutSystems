@@ -1,15 +1,25 @@
-export function sddMerge(sdd1, sdd2, method) {
+/**
+ * Merge two SDD (Structured Data Definition) datasets using the specified method.
+ * @param {Object} sdd1 - The primary dataset (left table).
+ * @param {Object} sdd2 - The secondary dataset (right table).
+ * @param {string} method - "Append", "Append (loose)", or "Left Join".
+ * @param {string|null} joinOn - Only used for "Left Join", format: "col-<index>", e.g., "col-2".
+ * @returns {Object} - The merged SDD.
+ */
+export function sddMerge(sdd1, sdd2, method, joinOn = null) {
     const result = {
         definitions: {},
         data: {}
     };
 
+    // Build a quick lookup of field metadata
     const getDefMap = defs => Object.entries(defs).reduce((acc, [name, def], index) => {
         acc[name] = { ...def, index };
         return acc;
     }, {});
 
     if (method === "Append") {
+        // Strict append — both definitions must match exactly
         if (JSON.stringify(sdd1.definitions) !== JSON.stringify(sdd2.definitions)) {
             throw new Error("Schemas do not match for Append.");
         }
@@ -20,6 +30,7 @@ export function sddMerge(sdd1, sdd2, method) {
         }
 
     } else if (method === "Append (loose)") {
+        // Loose append — union of fields, fill nulls where missing
         const allKeys = Array.from(new Set([
             ...Object.keys(sdd1.definitions),
             ...Object.keys(sdd2.definitions)
@@ -27,8 +38,10 @@ export function sddMerge(sdd1, sdd2, method) {
 
         for (const name of allKeys) {
             result.definitions[name] = sdd1.definitions[name] || sdd2.definitions[name] || { kind: "any", optional: true };
-            const len1 = sdd1.data[sdd1.data[name] ? name : Object.keys(sdd1.data)[0]].length;
-            const len2 = sdd2.data[sdd2.data[name] ? name : Object.keys(sdd2.data)[0]].length;
+
+            const len1 = sdd1.data[Object.keys(sdd1.data)[0]].length;
+            const len2 = sdd2.data[Object.keys(sdd2.data)[0]].length;
+
             result.data[name] = [
                 ...(sdd1.data[name] || Array(len1).fill(null)),
                 ...(sdd2.data[name] || Array(len2).fill(null))
@@ -36,16 +49,25 @@ export function sddMerge(sdd1, sdd2, method) {
         }
 
     } else if (method === "Left Join") {
-        const keyField = Object.keys(sdd1.definitions)[0];
-        const defMap1 = getDefMap(sdd1.definitions);
-        const defMap2 = getDefMap(sdd2.definitions);
+        const defKeys = Object.keys(sdd1.definitions);
 
-        const keyValues = sdd1.data[keyField];
-        const rowCount = keyValues.length;
+        if (!joinOn || !/^col-\d+$/.test(joinOn)) {
+            throw new Error("Invalid or missing 'joinOn' parameter for Left Join.");
+        }
 
+        const colIndex = parseInt(joinOn.split("-")[1], 10) - 1;
+        if (colIndex < 0 || colIndex >= defKeys.length) {
+            throw new Error(`Column index out of range for 'joinOn': ${joinOn}`);
+        }
+
+        const keyField = defKeys[colIndex]; // e.g. "date"
+
+        // Create lookup map from sdd2
         const lookup = new Map();
-        for (let i = 0; i < sdd2.data[keyField].length; i++) {
-            const key = sdd2.data[keyField][i];
+        const sdd2Keys = sdd2.data[keyField] || [];
+
+        for (let i = 0; i < sdd2Keys.length; i++) {
+            const key = sdd2Keys[i];
             const row = {};
             for (const name in sdd2.data) {
                 row[name] = sdd2.data[name][i];
@@ -53,32 +75,36 @@ export function sddMerge(sdd1, sdd2, method) {
             lookup.set(key, row);
         }
 
-        for (const name in sdd1.definitions) {
-            result.definitions[name] = { ...sdd1.definitions[name] };
-        }
+        // Merge definitions
+        result.definitions = { ...sdd1.definitions };
         for (const name in sdd2.definitions) {
-            if (name !== keyField) {
-                result.definitions[name] = { ...sdd2.definitions[name] };
+            if (!(name in result.definitions)) {
+                result.definitions[name] = sdd2.definitions[name];
             }
         }
 
+        // Init result data arrays
         for (const name in result.definitions) {
             result.data[name] = [];
         }
 
+        // Loop through sdd1 and merge with sdd2 if key matches
+        const rowCount = sdd1.data[keyField].length;
         for (let i = 0; i < rowCount; i++) {
             const key = sdd1.data[keyField][i];
-            for (const name in sdd1.data) {
-                result.data[name].push(sdd1.data[name][i]);
-            }
-            for (const name in sdd2.definitions) {
-                if (name === keyField) continue;
-                const val = lookup.get(key)?.[name] ?? null;
-                result.data[name].push(val);
+            const row2 = lookup.get(key) || {};
+
+            for (const name in result.definitions) {
+                if (sdd1.data[name]) {
+                    result.data[name].push(sdd1.data[name][i]);
+                } else {
+                    // From sdd2 or fill with null
+                    result.data[name].push(name in row2 ? row2[name] : null);
+                }
             }
         }
-
-    } else {
+    }
+    else {
         throw new Error("Invalid method");
     }
 

@@ -20,6 +20,7 @@ var SddOperator = (() => {
   // Index.js
   var Index_exports = {};
   __export(Index_exports, {
+    csvToSdd: () => csvToSdd,
     sddAddModifyColumn: () => sddAddModifyColumn,
     sddAggregate: () => sddAggregate,
     sddColumnToArray: () => sddColumnToArray,
@@ -30,7 +31,9 @@ var SddOperator = (() => {
     sddDuplicateColumn: () => sddDuplicateColumn,
     sddFilter: () => sddFilter,
     sddMerge: () => sddMerge,
-    sddRenameColumn: () => sddRenameColumn
+    sddPivotToWideTable: () => sddPivotToWideTable,
+    sddRenameColumn: () => sddRenameColumn,
+    sddSetValue: () => sddSetValue
   });
 
   // AddModifyColumn.js
@@ -159,7 +162,7 @@ var SddOperator = (() => {
   }
 
   // Merge.js
-  function sddMerge(sdd1, sdd2, method) {
+  function sddMerge(sdd1, sdd2, method, joinOn = null) {
     const result = {
       definitions: {},
       data: {}
@@ -183,48 +186,52 @@ var SddOperator = (() => {
       ]));
       for (const name of allKeys) {
         result.definitions[name] = sdd1.definitions[name] || sdd2.definitions[name] || { kind: "any", optional: true };
-        const len1 = sdd1.data[sdd1.data[name] ? name : Object.keys(sdd1.data)[0]].length;
-        const len2 = sdd2.data[sdd2.data[name] ? name : Object.keys(sdd2.data)[0]].length;
+        const len1 = sdd1.data[Object.keys(sdd1.data)[0]].length;
+        const len2 = sdd2.data[Object.keys(sdd2.data)[0]].length;
         result.data[name] = [
           ...sdd1.data[name] || Array(len1).fill(null),
           ...sdd2.data[name] || Array(len2).fill(null)
         ];
       }
     } else if (method === "Left Join") {
-      const keyField = Object.keys(sdd1.definitions)[0];
-      const defMap1 = getDefMap(sdd1.definitions);
-      const defMap2 = getDefMap(sdd2.definitions);
-      const keyValues = sdd1.data[keyField];
-      const rowCount = keyValues.length;
+      const defKeys = Object.keys(sdd1.definitions);
+      if (!joinOn || !/^col-\d+$/.test(joinOn)) {
+        throw new Error("Invalid or missing 'joinOn' parameter for Left Join.");
+      }
+      const colIndex = parseInt(joinOn.split("-")[1], 10) - 1;
+      if (colIndex < 0 || colIndex >= defKeys.length) {
+        throw new Error(`Column index out of range for 'joinOn': ${joinOn}`);
+      }
+      const keyField = defKeys[colIndex];
       const lookup = /* @__PURE__ */ new Map();
-      for (let i = 0; i < sdd2.data[keyField].length; i++) {
-        const key = sdd2.data[keyField][i];
+      const sdd2Keys = sdd2.data[keyField] || [];
+      for (let i = 0; i < sdd2Keys.length; i++) {
+        const key = sdd2Keys[i];
         const row = {};
         for (const name in sdd2.data) {
           row[name] = sdd2.data[name][i];
         }
         lookup.set(key, row);
       }
-      for (const name in sdd1.definitions) {
-        result.definitions[name] = { ...sdd1.definitions[name] };
-      }
+      result.definitions = { ...sdd1.definitions };
       for (const name in sdd2.definitions) {
-        if (name !== keyField) {
-          result.definitions[name] = { ...sdd2.definitions[name] };
+        if (!(name in result.definitions)) {
+          result.definitions[name] = sdd2.definitions[name];
         }
       }
       for (const name in result.definitions) {
         result.data[name] = [];
       }
+      const rowCount = sdd1.data[keyField].length;
       for (let i = 0; i < rowCount; i++) {
         const key = sdd1.data[keyField][i];
-        for (const name in sdd1.data) {
-          result.data[name].push(sdd1.data[name][i]);
-        }
-        for (const name in sdd2.definitions) {
-          if (name === keyField) continue;
-          const val = lookup.get(key)?.[name] ?? null;
-          result.data[name].push(val);
+        const row2 = lookup.get(key) || {};
+        for (const name in result.definitions) {
+          if (sdd1.data[name]) {
+            result.data[name].push(sdd1.data[name][i]);
+          } else {
+            result.data[name].push(name in row2 ? row2[name] : null);
+          }
         }
       }
     } else {
@@ -429,6 +436,164 @@ var SddOperator = (() => {
       }
     }
     processBatch();
+  }
+
+  // PivotToWideTable.js
+  function sddPivotToWideTable(sdd, keepColumn, pivotColumn, valueColumn, paddingColumns = []) {
+    const { data, definitions } = sdd;
+    const rowCount = Object.values(data)[0]?.length || 0;
+    if (!data.hasOwnProperty(keepColumn)) throw new Error(`Keep column '${keepColumn}' not found`);
+    if (!data.hasOwnProperty(pivotColumn)) throw new Error(`Pivot column '${pivotColumn}' not found`);
+    if (!data.hasOwnProperty(valueColumn)) throw new Error(`Value column '${valueColumn}' not found`);
+    const result = {
+      data: {},
+      definitions: {}
+    };
+    const uniquePivotValues = Array.from(new Set(data[pivotColumn]));
+    const groupKey = (i) => {
+      const parts = [data[keepColumn][i]];
+      for (const padCol of paddingColumns) {
+        if (!data.hasOwnProperty(padCol)) throw new Error(`Padding column '${padCol}' not found`);
+        parts.push(data[padCol][i]);
+      }
+      return parts.join("|\u25FC|");
+    };
+    const groupMap = /* @__PURE__ */ new Map();
+    for (let i = 0; i < rowCount; i++) {
+      const key = groupKey(i);
+      if (!groupMap.has(key)) groupMap.set(key, {});
+      groupMap.get(key)[data[pivotColumn][i]] = data[valueColumn][i];
+    }
+    result.data[keepColumn] = [];
+    result.definitions[keepColumn] = { ...definitions[keepColumn] };
+    for (const padCol of paddingColumns) {
+      result.data[padCol] = [];
+      result.definitions[padCol] = { ...definitions[padCol] };
+    }
+    for (const pv of uniquePivotValues) {
+      result.data[pv] = [];
+      result.definitions[pv] = { kind: definitions[valueColumn].kind, optional: true };
+    }
+    for (const key of groupMap.keys()) {
+      const [keepVal, ...padVals] = key.split("|\u25FC|");
+      result.data[keepColumn].push(keepVal);
+      paddingColumns.forEach((padCol, idx) => {
+        result.data[padCol].push(padVals[idx]);
+      });
+      const valueMap = groupMap.get(key);
+      for (const pv of uniquePivotValues) {
+        result.data[pv].push(pv in valueMap ? valueMap[pv] : null);
+      }
+    }
+    return { data: result.data, definitions: result.definitions };
+  }
+
+  // CsvToSdd.js
+  function createEmptySdd() {
+    return {
+      data: {},
+      definitions: {},
+      sddFormat: "sdd/table/object-of-arrays",
+      version: "1.0.0"
+    };
+  }
+  function generateDefinition(columnName, type) {
+    const validTypes = ["string", "number", "integer", "boolean", "enum", "time", "currency"];
+    const kind = type.toLowerCase();
+    if (!validTypes.includes(kind)) {
+      throw new Error(`Unsupported type '${type}' for column '${columnName}'`);
+    }
+    return {
+      kind,
+      optional: false
+    };
+  }
+  function csvToSdd(csvText, defaultType, columnTypeOverrides = []) {
+    const lines = csvText.trim().split(/\r?\n/);
+    if (lines.length === 0) {
+      throw new Error("CSV is empty.");
+    }
+    const headers = lines[0].split(",").map((h) => h.trim());
+    const sdd = createEmptySdd();
+    const typeOverrideMap = {};
+    for (const { Column, Type } of columnTypeOverrides) {
+      typeOverrideMap[Column] = Type;
+    }
+    for (const header of headers) {
+      const appliedType = typeOverrideMap[header] || defaultType;
+      sdd.definitions[header] = generateDefinition(header, appliedType);
+      sdd.data[header] = [];
+    }
+    for (let i = 1; i < lines.length; i++) {
+      if (lines[i].trim() === "") continue;
+      const cells = lines[i].split(",").map((c) => c.trim());
+      for (let j = 0; j < headers.length; j++) {
+        const header = headers[j];
+        const value = parseValue(cells[j], sdd.definitions[header].kind);
+        sdd.data[header].push(value);
+      }
+    }
+    return sdd;
+  }
+  function parseValue(rawValue, kind) {
+    if (rawValue === "" || rawValue.toLowerCase() === "null") return null;
+    switch (kind) {
+      case "string":
+      case "enum":
+      case "time":
+      case "currency":
+        return rawValue;
+      case "number":
+        const num = Number(rawValue);
+        return isNaN(num) ? null : num;
+      case "integer":
+        const int = parseInt(rawValue, 10);
+        return isNaN(int) ? null : int;
+      case "boolean":
+        return rawValue.toLowerCase() === "true";
+      default:
+        return rawValue;
+    }
+  }
+
+  // SetValue.js
+  function sddSetValue(object, keyPath, valueToSet, enable = true, createMissing = false) {
+    if (!enable) return object;
+    if (typeof keyPath !== "string") {
+      throw new Error("Key path must be a string");
+    }
+    const newObj = structuredClone(object);
+    const pathParts = keyPath.split(".");
+    let current = newObj;
+    for (let i = 0; i < pathParts.length; i++) {
+      const part = pathParts[i];
+      const isLast = i === pathParts.length - 1;
+      const isIndex = !isNaN(part);
+      const key = isIndex ? parseInt(part, 10) : part;
+      if (isLast) {
+        if (Array.isArray(current) && typeof key === "number") {
+          if (key >= current.length || key < 0) {
+            throw new Error(`Invalid array index: ${key} at ${pathParts.slice(0, i).join(".")}`);
+          }
+          current[key] = valueToSet;
+        } else if (typeof current === "object" && current !== null) {
+          current[key] = valueToSet;
+        } else {
+          throw new Error(`Cannot set value at ${keyPath}: target is not an object or array`);
+        }
+      } else {
+        if (current[key] == null) {
+          if (createMissing) {
+            const nextIsIndex = !isNaN(pathParts[i + 1]);
+            current[key] = nextIsIndex ? [] : {};
+          } else {
+            throw new Error(`Path does not exist at '${pathParts.slice(0, i + 1).join(".")}'`);
+          }
+        }
+        current = current[key];
+      }
+    }
+    return newObj;
   }
 
   // OperateOnColumn.js
