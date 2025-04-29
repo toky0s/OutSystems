@@ -1,5 +1,10 @@
 {
     "scripts": {
-      "build": "esbuild Index.js --bundle --format=iife --global-name=SddOperator --outfile=../dist/sdd-operator.js"
+        "build": "esbuild Index.js --bundle --format=iife --global-name=SddOperator --outfile=../dist/sdd-operator.js",
+        "test": "npx mocha"
+    },
+    "devDependencies": {
+        "chai": "^5.2.0",
+        "mocha": "^11.1.0"
     }
-  }
+}

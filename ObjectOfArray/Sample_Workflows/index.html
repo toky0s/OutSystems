@@ -1,14 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
+
 <body>
     <script src="../dist/sdd-operator.js"></script>
-    <script src="./Workflow1_Data.js"></script>
-    <script src="./Workflow1.js"></script>
-
+    <script src="../test/data/sdd1.js"></script>
+    <script src="../test/data/sdd2.js"></script>
+    <script>
+        const result = SddOperator.sddMerge(sdd1, sdd2, "Left Join", "col-2")
+        console.log(result)
+    </script>
 </body>
+
 </html>
