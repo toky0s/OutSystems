@@ -1,5 +1,5 @@
 // sddMerge.test.js
-import { sddMerge } from './sddMerge';
+import "../dist/sdd-operator.js";
 
 describe('sddMerge - Left Join with joinOn', () => {
     const sdd1 = {

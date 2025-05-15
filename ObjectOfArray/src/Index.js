@@ -7,6 +7,7 @@ import { sddConvertSddToArrayAsync } from './Serialize'
 import { sddPivotToWideTable } from './PivotToWideTable'
 import { csvToSdd } from './CsvToSdd'
 import { sddSetValue } from './SetValue'
+import { sddCast } from './Cast'
 import {
     sddDeleteColumn,
     sddDeleteColumnsInArray,
@@ -29,5 +30,6 @@ export {
     sddRenameColumn,
     sddPivotToWideTable,
     sddSetValue,
-    csvToSdd
+    csvToSdd,
+    sddCast
 }

@@ -1,0 +1,11 @@
+{
+  "type": "module",
+  "scripts": {
+    "test": "mocha",
+    "build": "esbuild src/Index.js --bundle --format=iife --global-name=SddOperator --outfile=../dist/sdd-operator.js"
+  },
+  "devDependencies": {
+    "chai": "^5.2.0",
+    "mocha": "^11.2.2"
+  }
+}
